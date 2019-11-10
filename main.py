@@ -1,13 +1,28 @@
 import sys
+
 import serial
+import serial.tools.list_ports
 import os
 from ui.current_time import Ui_MainWindow as CurentTime
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets
+from PyQt5.QtWidgets import QMessageBox
 
-# list_coms = ['COM1', 'COM2']
+
+def close_port(com):
+    ser = serial.Serial(port=com, baudrate=9600, timeout=2)
+    ser.close()
+    print('Closed: ', com)
 
 
-import serial.tools.list_ports
+def open_port(com):
+    print('COM', com)
+    ser = serial.Serial(port=com, baudrate=9600, timeout=2)
+    if ser.is_open:
+        print('is open')
+        ser.flushInput()
+        ser.flushOutput()
+        res = ser.readline()
+        print(res)
 
 
 class MyApp(QtWidgets.QMainWindow, CurentTime):
@@ -15,18 +30,32 @@ class MyApp(QtWidgets.QMainWindow, CurentTime):
         super().__init__()
         self.setupUi(self)
         self.list_coms = []
-        self.ButtonConnect.clicked.connect(self.show_comports)
+        self.refresh_comports()
+        self.buttonRefresh.clicked.connect(self.refresh_comports)
+        self.buttonConnect.clicked.connect(self.connect_comport)
 
-    def show_comports(self):
-        self.listCOMports.clear()
-        for com_name in self.list_coms:  # для каждого файла в директории
-            self.listCOMports.addItem(com_name)   # добавить файл в listWidget
+    def connect_comport(self):
+        if self.listCOMports.currentItem():
+            selected_com = self.listCOMports.currentItem().text()
+            if self.buttonConnect.isChecked():
+                self.buttonConnect.setText("Disconnect")
+                print(selected_com)
+                open_port(selected_com)
+            else:
+                self.buttonConnect.setText("Connect")
+                print('Run disconnect')
+                close_port(selected_com)
+        else:
+            print('Not selected')
+            self.buttonConnect.setChecked(False)
+            QMessageBox.about(self, "Error", "Please, select COM port")
 
     def refresh_comports(self):
         self.listCOMports.clear()
         self.list_coms = list(serial.tools.list_ports.comports())
-
-
+        for com_name in self.list_coms:
+            com_name = str(com_name).split()
+            self.listCOMports.addItem(com_name[0])  # добавить comport в listWidget
 
 
 def main():
@@ -34,8 +63,6 @@ def main():
     window = MyApp()  # Создаём объект класса ExampleApp
     window.show()  # Показываем окно
     app.exec_()  # и запускаем приложение
-
-
 
 
 if __name__ == "__main__":
