@@ -12,7 +12,7 @@ import random
 
 class MyApp(QtWidgets.QMainWindow, CurentTime):
 
-    dataRefreshed = QtCore.pyqtSignal(str)
+    dataRefreshed = QtCore.pyqtSignal(str)  #1 шаг. Создаём свой сигнал
 
     def __init__(self):
         super().__init__()
@@ -25,13 +25,13 @@ class MyApp(QtWidgets.QMainWindow, CurentTime):
         self.refresh_comports()
         self.buttonRefresh.clicked.connect(self.refresh_comports)
         self.buttonConnect.clicked.connect(self.connect_comport)
-        self.button1.clicked.connect(self.time_refresh)
-        self.dataRefreshed.connect(self.refresh_data_slot)
+
+        self.dataRefreshed.connect(self.refresh_data_slot) # 3 шаг. Если вызвали сигнал - запускаем функцию обнвления окна
 
 
     def refresh_data_slot(self, data):
-        self.CurrnetTimeBrowser.clear()
-        self.data = data
+        self.CurrnetTimeBrowser.clear()   #очищаем окно
+        self.data = data                   #перезаписываем данные которые мы получили  и обновляем данные в окне
         self.CurrnetTimeBrowser.setHtml(self._translate("MainWindow", self.data))
 
     def connect_comport(self):
@@ -42,7 +42,6 @@ class MyApp(QtWidgets.QMainWindow, CurentTime):
                 self.ser = self.open_port(selected_com)
                 self.reading_thread = threading.Thread(target=self.read_com, args=(self.ser,), daemon=True)
                 self.reading_thread.start()
-                # self.read_com(self.ser)
             else:
                 self.buttonConnect.setText("Connect")
                 self.close_port(self.ser)
@@ -78,16 +77,13 @@ class MyApp(QtWidgets.QMainWindow, CurentTime):
 
                 data = ser.readline().decode()
 
-                # data = str(input())
-                print('\ninput data:', data)
+                print('\ninput raw data in COM port:', data)
 
                 line = data.split()
 
                 self.input_time = str(line[0])
                 self.input_data = str(line[1])
-
-                # self.reading_thread2 = threading.Thread(target=self.time_refresh, daemon=True)
-                # self.reading_thread2.start()
+                # Шаг 2 обновляем полученные в переменные временные и запускаем функцию которая посылает сигнал с тектом
                 self.time_refresh()
 
         except(Exception) as e:
@@ -97,15 +93,10 @@ class MyApp(QtWidgets.QMainWindow, CurentTime):
 
 
     def time_refresh(self):
-        # self.input_time = str((random.random()))
-        # self.input_data = str((random.random()))
 
-        print('\n self.input_time',  self.input_time)
-        print('\n self.input_data', self.input_data)
+        # print('\n self.input_time',  self.input_time)
+        # print('\n self.input_data', self.input_data)
 
-
-        # self.CurrnetTimeBrowser.clear()
-        #
         data = """<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">
                         <html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">
                         p, li { white-space: pre-wrap; }
@@ -116,11 +107,10 @@ class MyApp(QtWidgets.QMainWindow, CurentTime):
                         <p align=\"center\" style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:10pt;\"><br /></p>\n
                         <p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:28pt; color:#00ff00;\">""" + self.input_time + """ </span></p>\n
                         <p align=\"center\" style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:20pt; color:#00ff00;\"><br /></p>\n
-                        <p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:12pt; color:#ffff00;\">""" + self.input_data + """ </span></p></body></html>"""
-        #
-        self.dataRefreshed.emit(data)
-        #
-        # self.CurrnetTimeBrowser.setHtml(self._translate("MainWindow", self.data))
+                        <p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:12pt; color:#ffff00;\"> Date:""" + self.input_data + """ </span></p></body></html>"""
+
+        self.dataRefreshed.emit(data)  # После обновления функции кидаем сигнал
+
 
 
 
