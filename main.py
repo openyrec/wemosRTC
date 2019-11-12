@@ -6,11 +6,14 @@ import serial
 import serial.tools.list_ports
 import os
 from ui.current_time import Ui_MainWindow as CurentTime
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtWidgets import QMessageBox
 import random
 
 class MyApp(QtWidgets.QMainWindow, CurentTime):
+
+    dataRefreshed = QtCore.pyqtSignal(str)
+
     def __init__(self):
         super().__init__()
         self.setupUi(self)
@@ -22,6 +25,14 @@ class MyApp(QtWidgets.QMainWindow, CurentTime):
         self.refresh_comports()
         self.buttonRefresh.clicked.connect(self.refresh_comports)
         self.buttonConnect.clicked.connect(self.connect_comport)
+        self.button1.clicked.connect(self.time_refresh)
+        self.dataRefreshed.connect(self.refresh_data_slot)
+
+
+    def refresh_data_slot(self, data):
+        self.CurrnetTimeBrowser.clear()
+        self.data = data
+        self.CurrnetTimeBrowser.setHtml(self._translate("MainWindow", self.data))
 
     def connect_comport(self):
         if self.listCOMports.currentItem():
@@ -54,15 +65,20 @@ class MyApp(QtWidgets.QMainWindow, CurentTime):
             self.com_state = True
             return ser
 
+    def close_port(self, ser):
+        self.com_state = None
+        self.ser.close()
+
+
     def read_com(self, ser):
         try:
             while self.com_state:
                 ser.flushInput()
                 ser.flushOutput()
 
-                # data = ser.readline().decode()
+                data = ser.readline().decode()
 
-                data = str(input())
+                # data = str(input())
                 print('\ninput data:', data)
 
                 line = data.split()
@@ -70,25 +86,27 @@ class MyApp(QtWidgets.QMainWindow, CurentTime):
                 self.input_time = str(line[0])
                 self.input_data = str(line[1])
 
-                self.reading_thread2 = threading.Thread(target=self.time_refresh, daemon=True)
-                self.reading_thread2.start()
-                # self.time_refresh()
+                # self.reading_thread2 = threading.Thread(target=self.time_refresh, daemon=True)
+                # self.reading_thread2.start()
+                self.time_refresh()
 
         except(Exception) as e:
             self.close_port(ser)
 
-    def close_port(self, ser):
-        self.com_state = None
-        self.ser.close()
+
+
 
     def time_refresh(self):
+        # self.input_time = str((random.random()))
+        # self.input_data = str((random.random()))
 
         print('\n self.input_time',  self.input_time)
         print('\n self.input_data', self.input_data)
 
-        self.CurrnetTimeBrowser.clear()
 
-        self.data = """<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">
+        # self.CurrnetTimeBrowser.clear()
+        #
+        data = """<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">
                         <html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">
                         p, li { white-space: pre-wrap; }
                         </style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:6.6pt; font-weight:400; font-style:normal;\">\n
@@ -99,11 +117,11 @@ class MyApp(QtWidgets.QMainWindow, CurentTime):
                         <p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:28pt; color:#00ff00;\">""" + self.input_time + """ </span></p>\n
                         <p align=\"center\" style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:20pt; color:#00ff00;\"><br /></p>\n
                         <p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:12pt; color:#ffff00;\">""" + self.input_data + """ </span></p></body></html>"""
-
-        print('\n data', self.data)
-
+        #
+        self.dataRefreshed.emit(data)
+        #
         # self.CurrnetTimeBrowser.setHtml(self._translate("MainWindow", self.data))
-        # self.CurrnetTimeBrowser.reload()
+
 
 
 

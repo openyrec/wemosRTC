@@ -83,6 +83,12 @@ class Ui_MainWindow(object):
         self.buttonRefresh = QtWidgets.QPushButton(self.centralwidget)
         self.buttonRefresh.setGeometry(QtCore.QRect(230, 50, 93, 31))
         self.buttonRefresh.setObjectName("buttonRefresh")
+        #-----------
+        self.button1 = QtWidgets.QPushButton(self.centralwidget)
+        self.button1.setGeometry(QtCore.QRect(230, 20, 20, 20))
+        self.button1.setObjectName("button1")
+
+
         MainWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(MainWindow)
