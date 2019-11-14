@@ -62,17 +62,18 @@ void getDateDs1307(byte *second,
 //----------------------------------------------------------------------------
 
 void setTime(){
-  Serial.println("Starten setTime function: ");
+  Serial.println("Start setTime function");
+  Serial.println("Write here new data");
   digitalWrite(LED_BUILTIN, LOW); //Enable LED
   byte second, minute, hour, dayOfWeek, dayOfMonth, month, year;
   
-  second = 45;
-  minute = 3;
-  hour = 7;
-  dayOfWeek = 5;
-  dayOfMonth = 17;
-  month = 4;
-  year = 8;
+  second = 30;
+  minute = 38;
+  hour = 15;
+  dayOfWeek = 4;
+  dayOfMonth = 14;
+  month = 11;
+  year = 19;
   setDateDs1307(second, minute, hour, dayOfWeek, dayOfMonth, month, year);
 }
 
@@ -88,13 +89,13 @@ void showTime(){
   Serial.print(minute, DEC);
   Serial.print(":");
   Serial.print(second, DEC);
-  Serial.print("  ");
+  Serial.print(" ");
   Serial.print(month, DEC);
   Serial.print("-");
   Serial.print(dayOfMonth, DEC);
   Serial.print("-");
   Serial.print(year, DEC);
-  Serial.print("  Day_of_week:");
+  Serial.print(" WeekDay:");
   Serial.println(dayOfWeek, DEC);
 }
 //----------------------setup------------------------------------------------------
@@ -106,17 +107,7 @@ void setup()
   Serial.begin(115200);
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH); //Disable LED
-
-  second = 00;
-  minute = 00;
-  hour = 00;
-  dayOfWeek = 00;
-  dayOfMonth = 00;
-  month = 00;
-  year = 00;
-  setDateDs1307(second, minute, hour, dayOfWeek, dayOfMonth, month, year);
 }
-
 //----------------------loop------------------------------------------------------
 
 
@@ -130,13 +121,13 @@ void loop()
   if (Serial.available() > 0) {
     incomingByte = Serial.read();
 
-                  if(incomingByte == '1'){
+                  if(incomingByte == 115){  //letter s - to set
                     Serial.println("Here1");
                     in_settings_mode = true;
                     setTime();
               
                   }
-                  else if (incomingByte == '0'){
+                  else if (incomingByte == 101){ //letter e - to end
                     Serial.println("Here0");
                     Serial.println("Finish settings");
                     digitalWrite(LED_BUILTIN, HIGH);
@@ -144,7 +135,7 @@ void loop()
                   }
     
       Serial.print("I received: ");
-      Serial.println(incomingByte, DEC);
+      Serial.println(incomingByte, DEC );
   }
 
   delay(1000);

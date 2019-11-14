@@ -8,11 +8,10 @@ import os
 from ui.current_time import Ui_MainWindow as CurentTime
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtWidgets import QMessageBox
-import random
+
 
 class MyApp(QtWidgets.QMainWindow, CurentTime):
-
-    dataRefreshed = QtCore.pyqtSignal(str)  #1 шаг. Создаём свой сигнал
+    dataRefreshed = QtCore.pyqtSignal(str)  # 1 шаг. Создаём свой сигнал
 
     def __init__(self):
         super().__init__()
@@ -25,13 +24,14 @@ class MyApp(QtWidgets.QMainWindow, CurentTime):
         self.refresh_comports()
         self.buttonRefresh.clicked.connect(self.refresh_comports)
         self.buttonConnect.clicked.connect(self.connect_comport)
+        self.buttonWrite.clicked.connect(self.write_com)
 
-        self.dataRefreshed.connect(self.refresh_data_slot) # 3 шаг. Если вызвали сигнал - запускаем функцию обнвления окна
-
+        self.dataRefreshed.connect(
+            self.refresh_data_slot)  # 3 шаг. Если вызвали сигнал - запускаем функцию обнвления окна
 
     def refresh_data_slot(self, data):
-        self.CurrnetTimeBrowser.clear()   #очищаем окно
-        self.data = data                   #перезаписываем данные которые мы получили  и обновляем данные в окне
+        self.CurrnetTimeBrowser.clear()  # очищаем окно
+        self.data = data  # перезаписываем данные которые мы получили  и обновляем данные в окне
         self.CurrnetTimeBrowser.setHtml(self._translate("MainWindow", self.data))
 
     def connect_comport(self):
@@ -59,7 +59,8 @@ class MyApp(QtWidgets.QMainWindow, CurentTime):
 
     def open_port(self, com):
         print('Selected COM:', com)
-        ser = serial.Serial(port=com, baudrate=9600, timeout=2)
+        ser = serial.Serial(port=com, baudrate=115200, timeout=2)
+
         if ser.is_open:
             self.com_state = True
             return ser
@@ -67,7 +68,6 @@ class MyApp(QtWidgets.QMainWindow, CurentTime):
     def close_port(self, ser):
         self.com_state = None
         self.ser.close()
-
 
     def read_com(self, ser):
         try:
@@ -80,40 +80,37 @@ class MyApp(QtWidgets.QMainWindow, CurentTime):
                 print('\ninput raw data in COM port:', data)
 
                 line = data.split()
-
-                self.input_time = str(line[0])
-                self.input_data = str(line[1])
+                if '165' not in data:
+                    self.input_time = str(line[0])
+                    self.input_data = str(line[1])
                 # Шаг 2 обновляем полученные в переменные временные и запускаем функцию которая посылает сигнал с тектом
                 self.time_refresh()
 
         except(Exception) as e:
             self.close_port(ser)
 
+    def write_com(self):
 
-
+        from datetime import datetime
+        t = datetime.now().strftime('%d-%m-%y %H:%M:%S')
+        print('Current os time:', t)
+        # self.ser.write(bytes(t))
+        self.ser.write(b'sending string to Arduino')
 
     def time_refresh(self):
 
-        # print('\n self.input_time',  self.input_time)
-        # print('\n self.input_data', self.input_data)
-
         data = """<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">
-                        <html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">
-                        p, li { white-space: pre-wrap; }
-                        </style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:6.6pt; font-weight:400; font-style:normal;\">\n
+                        <html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">p, li { white-space: pre-wrap; }</style></head>
+                        <body style=\" font-family:\'MS Shell Dlg 2\'; font-size:6.6pt; font-weight:400; font-style:normal;\">
                         <p align=\"center\" style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n
-                        <p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:12pt; color:#ffffff;\">Time</span></p>\n
+                        <p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:12pt; color:#ffffff;\">Time:</span></p>\n
                         <p align=\"center\" style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:10pt;\"><br /></p>\n
                         <p align=\"center\" style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:10pt;\"><br /></p>\n
-                        <p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:28pt; color:#00ff00;\">""" + self.input_time + """ </span></p>\n
+                        <p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:28pt; color:#00ff00;\">""" + self.input_time + """</span></p>\n
                         <p align=\"center\" style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:20pt; color:#00ff00;\"><br /></p>\n
-                        <p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:12pt; color:#ffff00;\"> Date:""" + self.input_data + """ </span></p></body></html>"""
+                        <p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:12pt; color:#ffff00;\">Date:""" + self.input_data + """</span></p></body></html>"""
 
         self.dataRefreshed.emit(data)  # После обновления функции кидаем сигнал
-
-
-
-
 
 
 def main():
