@@ -67,11 +67,11 @@ void setTime(){
   digitalWrite(LED_BUILTIN, LOW); //Enable LED
   byte second, minute, hour, dayOfWeek, dayOfMonth, month, year;
   
-  second = 30;
-  minute = 38;
-  hour = 15;
-  dayOfWeek = 4;
-  dayOfMonth = 14;
+  second = 12;
+  minute = 12;
+  hour = 12;
+  dayOfWeek = 5;
+  dayOfMonth = 15;
   month = 11;
   year = 19;
   setDateDs1307(second, minute, hour, dayOfWeek, dayOfMonth, month, year);
@@ -84,6 +84,7 @@ void showTime(){
   byte second, minute, hour, dayOfWeek, dayOfMonth, month, year;
   
   getDateDs1307(&second, &minute, &hour, &dayOfWeek, &dayOfMonth, &month, &year);
+  
   Serial.print(hour, DEC);
   Serial.print(":");
   Serial.print(minute, DEC);
