@@ -16,7 +16,7 @@ class MyApp(QtWidgets.QMainWindow, CurentTime):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
-        self.com_state = None
+        self.com_state = False
         self.ser = None
         self.reading_thread = None
         self.reading_thread2 = None
@@ -24,7 +24,7 @@ class MyApp(QtWidgets.QMainWindow, CurentTime):
         self.refresh_comports()
         self.buttonRefresh.clicked.connect(self.refresh_comports)
         self.buttonConnect.clicked.connect(self.connect_comport)
-        self.buttonWrite.clicked.connect(self.write_com)
+        # self.buttonWrite.clicked.connect(self.write_com)
 
         self.dataRefreshed.connect(
             self.refresh_data_slot)  # 3 шаг. Если вызвали сигнал - запускаем функцию обнвления окна
@@ -44,6 +44,7 @@ class MyApp(QtWidgets.QMainWindow, CurentTime):
                 self.reading_thread.start()
             else:
                 self.buttonConnect.setText("Connect")
+                self.CurrnetTimeBrowser.setHtml(self._translate("MainWindow", self.data_default))  #дефолтный тест
                 self.close_port(self.ser)
         else:
             print('COM-port not selected')
@@ -51,11 +52,12 @@ class MyApp(QtWidgets.QMainWindow, CurentTime):
             QMessageBox.about(self, "Error", "Please, select COM port")
 
     def refresh_comports(self):
-        self.listCOMports.clear()
-        self.list_coms = list(serial.tools.list_ports.comports())
-        for com_name in self.list_coms:
-            com_name = str(com_name).split()
-            self.listCOMports.addItem(com_name[0])  # добавить comport в listWidget
+        if self.com_state is not True:
+            self.listCOMports.clear()
+            self.list_coms = list(serial.tools.list_ports.comports())
+            for com_name in self.list_coms:
+                com_name = str(com_name).split()
+                self.listCOMports.addItem(com_name[0])  # добавить comport в listWidget
 
     def open_port(self, com):
         print('Selected COM:', com)
@@ -66,8 +68,9 @@ class MyApp(QtWidgets.QMainWindow, CurentTime):
             return ser
 
     def close_port(self, ser):
-        self.com_state = None
-        self.ser.close()
+        if self.com_state:
+            self.com_state = False
+            self.ser.close()
 
     def read_com(self, ser):
         try:
@@ -95,7 +98,7 @@ class MyApp(QtWidgets.QMainWindow, CurentTime):
         t = datetime.now().strftime('%d-%m-%y %H:%M:%S')
         print('Current os time:', t)
         # self.ser.write(bytes(t))
-        self.ser.write(b'sending string to Arduino')
+        # self.ser.write(b'sending string to Arduino')
 
     def time_refresh(self):
 
@@ -106,10 +109,10 @@ class MyApp(QtWidgets.QMainWindow, CurentTime):
                         <p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:12pt; color:#ffffff;\">Time:</span></p>\n
                         <p align=\"center\" style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:10pt;\"><br /></p>\n
                         <p align=\"center\" style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:10pt;\"><br /></p>\n
-                        <p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:28pt; color:#00ff00;\">""" + self.input_time + """</span></p>\n
+                        <p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:28pt; color:#00ff00;\">     """ + self.input_time + """</span></p>\n
                         <p align=\"center\" style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:20pt; color:#00ff00;\"><br /></p>\n
-                        <p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:12pt; color:#ffff00;\">Date:""" + self.input_data + """</span></p></body></html>"""
-
+                        <p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:12pt; color:#ffff00;\">Date: """ + self.input_data + """</span></p></body></html>"""
+        # print(data)
         self.dataRefreshed.emit(data)  # После обновления функции кидаем сигнал
 
 
